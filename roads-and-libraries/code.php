@@ -11,96 +11,41 @@
  *  4. 2D_INTEGER_ARRAY cities
  */
 
-class DSU{
-    private $parent;
-    private $size;
-
-    public function __construct(int $n)
-    {
-        $this->parent = [];
-        $this->size = [];
-
-        for($i = 1; $i <= $n; $i++){
-            $this->parent[$i] = $i;
-            $this->size[$i] = 1;
-        }
-    }
-
-    public function findParent(int $node): int
-    {
-        if($this->parent[$node] == $node)
-            return $node;
-        return $this->parent[$node] = $this->findParent($this->parent[$node]);
-    }
-
-    public function union(int $u, int $v): void
-    {
-        $pu = $this->findParent($u);
-        $pv = $this->findParent($v);
-
-        if($pu == $pv)
-            return;
-
-        if($this->size[$pu] >= $this->size[$pv]){
-            $this->parent[$pv] = $pu;
-            $this->size[$pu] += $this->size[$pv];
-        }
-        else{
-            $this->parent[$pu] = $pv;
-            $this->size[$pv] += $this->size[$pu];
-        }
-    }
-
-    public function getSize(int $idx): int
-    {
-        return $this->size[$idx];
-    }
-}
-
 function roadsAndLibraries($n, $c_lib, $c_road, $cities) {
-    //if ($c_lib <= $c_road) return $n * $c_lib;
-
-    // $dsu = new DSU($n);
-    //
-    // foreach($cities as $city) {
-    //     var_dump($city);
-    //     $dsu->union($city[0], $city[1]);
-    // }
-    //
-    // print_r($dsu);
+    if ($c_lib <= $c_road) return $n * $c_lib;
 
     $roadsAndLibraries = new RoadsAndLibraries;
-    $roadsAndLibraries->costRoad = $c_road;
-    $roadsAndLibraries->costLibrary = $c_lib;
 
-    $connections = [];
     foreach ($cities as $city)  {
         $roadsAndLibraries->connections[$city[0]][] = $city[1];
         $roadsAndLibraries->connections[$city[1]][] = $city[0];
     }
 
-    $roadsAndLibraries->visit(array_key_first($roadsAndLibraries->connections));
+    $groups = 0;
+    for ($i = 1; $i < $n + 1; $i++) {
+        if (!isset($roadsAndLibraries->visited[$i])) {
+            $groups++;
+            $roadsAndLibraries->visit($i);
+        }
+    }
 
-    print_r($roadsAndLibraries->connections);
+    return min(($n-$groups)*$c_road + $groups*$c_lib, $c_lib*$n);
 }
 
 class RoadsAndLibraries
 {
-    public $connections = [];
     public $visited = [];
-    public $costRoad;
-    public $costLibrary;
+    public $connections = [];
 
-    public function visit($node, $dis = 0)
+    public function visit($node)
     {
-        var_dump($node);
         $this->visited[$node] = $node;
+        if (isset($this->connections[$node]))
         foreach($this->connections[$node] as $val) {
             if (!isset($this->visited[$val])) {
                 $this->visit($val);
             }
         }
-        return 0;
     }
 }
 
