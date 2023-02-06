@@ -49,59 +49,10 @@ class RoadsInHackerLand
         $sum = '0';
         foreach ($this->ans as $i => $ans) {
             if ($ans == 0) continue;
-
-            //var_dump($i);
-            //$sum = gmp_add($sum, gmp_mul($ans, gmp_pow(2, $i)));
-            //$binaryArray = '1';
-            //$binaryArray = str_pad($binaryArray, $i, '0');
-            $binaryArray = str_repeat('0', $i + 1);
-            $binaryArray[0] = '1';
-
-//            var_dump('0b' . $ans);
-//            var_dump('0b' . $binaryArray);
-            //var_dump(gmp_mul($ans, '0b' . $binaryArray));
-
-            //var_dump(gmp_mul('0b' . $this->dec2bin_i($ans), '0b' . $binaryArray));
-            $sum = gmp_add($sum, gmp_mul($ans, '0b' . $binaryArray));
-            //$sum = bcadd($sum, bcmul($ans, $this->bin2dec_i($binaryArray)));
-            //$sum = bcadd($sum, bcmul($ans, $this->bin2dec_i($binaryArray)));
-
-            //$res += $this->ans[$i] * (1 << $i);
+            $sum = gmp_add($sum, gmp_mul($ans, gmp_pow(2, $i)));
         }
-
-        //return $sum;
 
         return gmp_strval($sum, 2);
-
-        //return $this->dec2bin_i($sum);
-    }
-
-    private function bin2dec_i($binary_i)
-    {
-        bcscale(0);
-
-        $decimal_i = '0';
-        for ($i = 0; $i < strlen($binary_i); $i++)
-        {
-            $decimal_i = bcmul($decimal_i,'2');
-            $decimal_i = bcadd($decimal_i,$binary_i[$i]);
-        }
-
-        return($decimal_i);
-    }
-
-    private function dec2bin_i($decimal_i)
-    {
-        bcscale(0);
-
-        $binary_i = '';
-        do
-        {
-            $binary_i = bcmod($decimal_i,'2') . $binary_i;
-            $decimal_i = bcdiv($decimal_i,'2');
-        } while (bccomp($decimal_i,'0'));
-
-        return($binary_i);
     }
 
     # Run DFS to count the number of times an edge is used
@@ -146,36 +97,6 @@ class RoadsInHackerLand
         $p_x = $this->find($x);
         $p_y = $this->find($y);
         return $p_x == $p_y;
-    }
-
-    private function addBinaryUtil($a, $b)
-    {
-        $result = ""; // Initialize result
-        $s = 0; // Initialize digit sum
-
-        // Traverse both strings starting from last
-        // characters
-        $i = strlen($a) - 1;
-        $j = strlen($b) - 1;
-        while ($i >= 0 || $j >= 0 || $s == 1)
-        {
-
-            // Compute sum of last digits and carry
-            $s += (($i >= 0) ? ord($a[$i]) - ord('0') : 0);
-            $s += (($j >= 0) ? ord($b[$j]) - ord('0') : 0);
-
-            // If current digit sum is 1 or 3,
-            // add 1 to result
-            $result = chr($s % 2 + ord('0')).$result;
-
-            // Compute carry
-            $s =(int)($s/2);
-
-            // Move to next digits
-            $i--;
-            $j--;
-        }
-        return $result;
     }
 }
 
