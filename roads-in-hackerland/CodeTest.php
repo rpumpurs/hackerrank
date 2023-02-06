@@ -45,7 +45,7 @@ final class CodeTest extends TestCase
 
             $expectedOutput = $this->readFile($expectedOutputFile);
 
-            exec('export OUTPUT_PATH=' . $tempOutputFilePath . ' && cat ' . $inputFileName .  ' | php code.php');
+            exec('export OUTPUT_PATH=' . $tempOutputFilePath . ' && cat ' . $inputFileName .  ' | php code2.php');
 
             $this->assertEquals($expectedOutput, file_get_contents($tempOutputFilePath));
         }

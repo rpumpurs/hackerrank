@@ -47,20 +47,47 @@ class RoadsInHackerLand
         $this->dfs(0);
 
         $sum = '0';
-        $res = 0;
         foreach ($this->ans as $i => $ans) {
-//            $binaryArray = '';
-//            $binaryArray[$i] = '1';
-//            $binaryArray = strrev(str_replace(' ', '0', $binaryArray));
+            if ($ans == 0) continue;
 
-            // $sum = gmp_add($sum, gmp_mul($ans, gmp_pow(2, $i)));
+            //var_dump($i);
+            //$sum = gmp_add($sum, gmp_mul($ans, gmp_pow(2, $i)));
+            //$binaryArray = '1';
+            //$binaryArray = str_pad($binaryArray, $i, '0');
+            $binaryArray = str_repeat('0', $i + 1);
+            $binaryArray[0] = '1';
 
-            $sum = bcadd($sum, bcmul($ans, bcpow(2, $i)));
+//            var_dump('0b' . $ans);
+//            var_dump('0b' . $binaryArray);
+            //var_dump(gmp_mul($ans, '0b' . $binaryArray));
+
+            //var_dump(gmp_mul('0b' . $this->dec2bin_i($ans), '0b' . $binaryArray));
+            $sum = gmp_add($sum, gmp_mul($ans, '0b' . $binaryArray));
+            //$sum = bcadd($sum, bcmul($ans, $this->bin2dec_i($binaryArray)));
+            //$sum = bcadd($sum, bcmul($ans, $this->bin2dec_i($binaryArray)));
 
             //$res += $this->ans[$i] * (1 << $i);
         }
 
-        return $this->dec2bin_i($sum);
+        //return $sum;
+
+        return gmp_strval($sum, 2);
+
+        //return $this->dec2bin_i($sum);
+    }
+
+    private function bin2dec_i($binary_i)
+    {
+        bcscale(0);
+
+        $decimal_i = '0';
+        for ($i = 0; $i < strlen($binary_i); $i++)
+        {
+            $decimal_i = bcmul($decimal_i,'2');
+            $decimal_i = bcadd($decimal_i,$binary_i[$i]);
+        }
+
+        return($decimal_i);
     }
 
     private function dec2bin_i($decimal_i)
