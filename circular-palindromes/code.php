@@ -52,7 +52,7 @@ class CircularPalindrome
         if (!$this->maxEvens) {
             $this->getMaxEvensPalindromes();
         }
-        return max($this->maxEvens[$rotation], $this->maxOdds[$rotation]);
+        return max($this->maxEvens[$rotation] * 2, $this->maxOdds[$rotation] * 2 - 1);
     }
 
     protected function getMaxOddsPalindromes() {
@@ -60,11 +60,23 @@ class CircularPalindrome
         $r = -1;
         $d1 = [];
 
+        $mask = [];
+        $maskVal = 0;
+        for ($v = 0; $v < $this->stringLength; $v++) {
+            if ($v < $this->stringHalfLength) {
+                $maskVal++;
+            } else if ($v > $this->stringHalfLength) {
+                $maskVal--;
+            }
+            $mask[] = $maskVal;
+        }
+
+        for ($i = 0; $i < $this->stringLength; $i++) {
+            $this->maxOdds[$i] = 0;
+        }
+
         $rotation = 0;
         for ($i = 0; $i < $this->doubleStringLength; $i++) {
-            //var_dump($i);
-            //var_dump(substr($this->doubleString, $rotation, $this->stringLength));
-
             $k = $i > $r ? 1 : min($d1[$l + $r - $i], $r - $i);
 
             while($rotation <= $i - $k && $i + $k < $this->doubleStringLength && $this->doubleString[$i - $k] == $this->doubleString[$i + $k]) {
@@ -72,11 +84,6 @@ class CircularPalindrome
             }
 
             $d1[$i] = $k;
-//            if ($rotation > 0) {
-//                for ($j = 0; $j < $i; $j++) {
-//                    $d1[$j]--;
-//                }
-//            }
 
             if ($i + $k - 1 > $r) {
                 $l = $i - $k + 1;
@@ -84,37 +91,19 @@ class CircularPalindrome
             }
 
             if ($i >= $this->stringLength) {
-                $rotation = $i - $this->stringLength;
-                $max = 0;
-                $ii = 0;
-                //var_dump($rotation . ' '  . $this->stringLength + $rotation);
-                //var_dump($d1);
-                for ($v = $rotation; $v < $this->stringLength + $rotation; $v++) {
-                    if ($v < $rotation + $this->stringHalfLength) {
-                        $ii++;
-                    } else if ($v > $rotation + $this->stringHalfLength) {
-                        $ii--;
-                    }
-                    //echo ($ii . ' ' . $d1[$v] . PHP_EOL);
-                    $maxV = min($ii, $d1[$v]);
-                    if ($maxV > $max) {
-                        $max = $maxV;
-                    }
-                }
-                $this->maxOdds[$rotation] = $max * 2 - 1;
-                //echo ('max ' . $this->maxOdds[$rotation] . PHP_EOL);
-                //echo ('===================================== ' . $rotation . PHP_EOL);
-                //sleep(1);
-                $rotation++;
-                //array_shift($d2);
+                $rotation = $i - $this->stringLength + 1;
             }
 
-//            if ($i >= $this->stringLength) {
-//                $rotation = $i - $this->stringLength;
-//                $this->maxOdds[$rotation] = max($d1) * 2 - 1;
-//                $rotation++;
-//                array_shift($d1);
-//            }
+            for ($ii = $rotation; $ii <= $i - $rotation; $ii++) {
+                if ($k < $mask[$i - $ii]) {
+                    $kWithMask = $k;
+                } else {
+                    $kWithMask = $mask[$i - $ii];
+                }
+                if ($kWithMask > $this->maxOdds[$ii]) {
+                    $this->maxOdds[$ii] = $kWithMask;
+                }
+            }
         }
     }
 
@@ -123,26 +112,31 @@ class CircularPalindrome
         $r = -1;
         $d2 = [];
 
+        $mask = [];
+        $maskVal = -1;
+        for ($v = 0; $v < $this->stringLength; $v++) {
+            if ($v < $this->stringHalfLength) {
+                $maskVal++;
+            } else if ($v > $this->stringHalfLength + 1) {
+                $maskVal--;
+            }
+
+            $mask[] = $maskVal;
+        }
+
+        for ($i = 0; $i < $this->stringLength; $i++) {
+            $this->maxEvens[$i] = 0;
+        }
+
         $rotation = 0;
         for ($i = 0; $i < $this->doubleStringLength; $i++) {
-            //var_dump($i);
-            //var_dump(substr($this->doubleString, $rotation, $this->stringLength));
             $k = $i > $r ? 0 : min($d2[$l + $r - $i + 1], $r - $i + 1);
 
-            //echo $i . ' ' . $k . PHP_EOL;
             while($i + $k < $this->doubleStringLength && $i - $k - 1 >= $rotation && $this->doubleString[$i + $k] == $this->doubleString[$i - $k - 1]){
                 $k++;
             }
-            //echo $i . PHP_EOL;
-            //var_dump($k);
 
             $d2[$i] = $k;
-//            if ($rotation > 0) {
-//                for ($j = 0; $j < $i; $j++) {
-//                    $d2[$j]--;
-//                }
-//            }
-//            var_dump($d2);
 
             if ($i + $k - 1 > $r) {
                 $l = $i - $k;
@@ -150,29 +144,18 @@ class CircularPalindrome
             }
 
             if ($i >= $this->stringLength) {
-                $rotation = $i - $this->stringLength;
-                $max = 0;
-                $ii = -1;
-                //var_dump($rotation . ' '  . $this->stringLength + $rotation);
-                //var_dump($d2);
-                for ($v = $rotation; $v < $this->stringLength + $rotation; $v++) {
-                    if ($v < $rotation + $this->stringHalfLength) {
-                        $ii++;
-                    } else if ($v > $rotation + $this->stringHalfLength + 1) {
-                        $ii--;
-                    }
-                    //echo ($ii . ' ' . $d2[$v] . PHP_EOL);
-                    $maxV = min($ii, $d2[$v]);
-                    if ($maxV > $max) {
-                        $max = $maxV;
-                    }
+                $rotation = $i - $this->stringLength + 1;
+            }
+
+            for ($ii = $rotation; $ii <= $i - $rotation; $ii++) {
+                if ($k < $mask[$i - $ii]) {
+                    $kWithMask = $k;
+                } else {
+                    $kWithMask = $mask[$i - $ii];
                 }
-                $this->maxEvens[$rotation] = $max * 2;
-                //echo ('max ' . $this->maxEvens[$rotation] . PHP_EOL);
-                //echo ('===================================== ' . $rotation . PHP_EOL);
-                //sleep(1);
-                $rotation++;
-                //array_shift($d2);
+                if ($kWithMask > $this->maxEvens[$ii]) {
+                    $this->maxEvens[$ii] = $kWithMask;
+                }
             }
         }
     }
