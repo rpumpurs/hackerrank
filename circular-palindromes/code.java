@@ -37,6 +37,8 @@ public class E2 {
             es[p++] = (long)(i/2+n)<<32|i;
         }
 
+        //tr(es);
+
         Arrays.sort(es, 0, p);
         MaxHeap inc = new MaxHeap(4*n+1);
         MaxHeap dec = new MaxHeap(4*n+1);
@@ -45,9 +47,11 @@ public class E2 {
         int[] st = new int[4*n];
         int q = 0;
         for(int i = 0;i < 2*n-1;i++){
+            //tr('i', i);
             while(q < p && es[q]>>>32 <= i){
-                //tr(q);
+                //tr('q', q);
                 int ind = (int)es[q];
+                //tr(ind, st[ind]);
                 if(st[ind] == 0){
                     inc.add(ind, (pal[ind]&1)-2*i);
                 }else if(st[ind] == 1){
