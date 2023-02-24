@@ -22,38 +22,22 @@ function steadyGene($gene) {
     }
 
     $deviationPos = 0;
-    $deviationNeg = 0;
     $deviationA = $steadyCount - $countsOriginal['A'];
     if ($deviationA > 0) {
         $deviationPos += $deviationA;
-    } else {
-        $deviationNeg += $deviationA;
     }
     $deviationC = $steadyCount - $countsOriginal['C'];
     if ($deviationC > 0) {
         $deviationPos += $deviationC;
-    } else {
-        $deviationNeg += $deviationC;
     }
     $deviationG = $steadyCount - $countsOriginal['G'];
     if ($deviationG > 0) {
         $deviationPos += $deviationG;
-    } else {
-        $deviationNeg += $deviationG;
     }
     $deviationT = $steadyCount - $countsOriginal['T'];
     if ($deviationT > 0) {
         $deviationPos += $deviationT;
-    } else {
-        $deviationNeg += $deviationT;
     }
-//    echo 'deviationA ' . $deviationA . PHP_EOL;
-//    echo 'deviationC ' . $deviationC . PHP_EOL;
-//    echo 'deviationG ' . $deviationG . PHP_EOL;
-//    echo 'deviationT ' . $deviationT . PHP_EOL;
-//    echo 'deviationPos ' . $deviationPos . PHP_EOL;
-//    echo 'deviationNeg ' . $deviationNeg . PHP_EOL;
-//    die();
 
     if ($countsOriginal['A'] === $steadyCount
         && $countsOriginal['C'] === $steadyCount
@@ -63,50 +47,81 @@ function steadyGene($gene) {
         return 0;
     }
 
+    $subLen = $deviationPos;
+
     $min = $n;
     for ($i = 0; $i < $n; $i++) {
-        echo $i . ' ' . $min . PHP_EOL;
         $countsChanged = [
             'A' => 0,
             'C' => 0,
             'G' => 0,
             'T' => 0,
         ];
+        $minADeviation = $n;
+        $minCDeviation = $n;
+        $minGDeviation = $n;
+        $minTDeviation = $n;
         for ($j = $i; $j < $n; $j++) {
             $substringLength = $j - $i + 1;
-            if ($substringLength >= $min) {
-                break;
-            }
             $countsChanged[$gene[$j]]++;
-            if ($substringLength < $deviationPos) {
-                continue;
+
+            if ($substringLength > $subLen) {
+                $countsChanged[$gene[$j - $subLen]]--;
             }
 
             $missingACount = $steadyCount - ($countsOriginal['A'] - $countsChanged['A']);
+            $missingCCount = $steadyCount - ($countsOriginal['C'] - $countsChanged['C']);
+            $missingGCount = $steadyCount - ($countsOriginal['G'] - $countsChanged['G']);
+            $missingTCount = $steadyCount - ($countsOriginal['T'] - $countsChanged['T']);
+
+            $missingCount = $missingACount + $missingCCount + $missingGCount + $missingTCount;
+
+            if ($missingACount >= 0) {
+                $minADeviation = 0;
+            }
+            if ($missingCCount >= 0) {
+                $minCDeviation = 0;
+            }
+            if ($missingGCount >= 0) {
+                $minGDeviation = 0;
+            }
+            if ($missingTCount >= 0) {
+                $minTDeviation = 0;
+            }
+
+            if (($v = abs($missingACount)) < $minADeviation) {
+                $minADeviation = $v;
+            }
+            if (($v = abs($missingCCount)) < $minCDeviation) {
+                $minCDeviation = $v;
+            }
+            if (($v = abs($missingGCount)) < $minGDeviation) {
+                $minGDeviation = $v;
+            }
+            if (($v = abs($missingTCount)) < $minTDeviation) {
+                $minTDeviation = $v;
+            }
+
             if ($missingACount < 0) {
                 continue;
             }
-            $missingCCount = $steadyCount - ($countsOriginal['C'] - $countsChanged['C']);
             if ($missingCCount < 0) {
                 continue;
             }
-            $missingGCount = $steadyCount - ($countsOriginal['G'] - $countsChanged['G']);
             if ($missingGCount < 0) {
                 continue;
             }
-            $missingTCount = $steadyCount - ($countsOriginal['T'] - $countsChanged['T']);
             if ($missingTCount < 0) {
                 continue;
             }
 
-            $missingCount = $missingACount + $missingCCount + $missingGCount + $missingTCount;
-
-            if ($substringLength === $missingCount) {
-                if (($substringLength) < $min) {
-                    $min = $substringLength;
-                }
+            if ($subLen === $missingCount) {
+                return $subLen;
             }
         }
+
+        $subLenAdjustment = max($minADeviation, $minCDeviation, $minGDeviation, $minTDeviation);
+        $subLen += $subLenAdjustment === 0 ? 1 : $subLenAdjustment;
     }
 
     return $min;
