@@ -1,1 +1,2 @@
 disjoint set union 		journey-to-the-moon
+log n search            pairs
