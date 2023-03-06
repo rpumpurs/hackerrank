@@ -12,76 +12,70 @@
  */
 
 function printShortestPath($n, $i_start, $j_start, $i_end, $j_end) {
-    $redKnight = new RedKnight($n, $i_end, $j_end);
-    $redKnight->hop($i_start, $j_start);
-    if (!$redKnight->isPossible()) {
+    if (($i_start - $i_end) % 2 !== 0) {
         echo 'Impossible';
         return;
     }
-    $minPath = $redKnight->getMinPath();
-    echo count($minPath) . PHP_EOL;
-    echo implode(' ', $minPath);
+
+    $redKnight = new RedKnight($n, $i_start, $j_start, $i_end, $j_end);
+    $a = $redKnight->hop($i_start, $j_start);
+
+    if (!$a) {
+        echo 'Impossible';
+        return;
+    }
+    echo $a[2] . PHP_EOL;
+    echo implode(' ', $a[3]);
 }
 
 class RedKnight
 {
     private $boardSize;
+    private $boardVisited = [];
     private $destinationI;
     private $destinationJ;
-    private $paths = [];
-    private $minPathLength = PHP_INT_MAX;
+    private $queue = [];
 
-    public function __construct($n, $i, $j)
+    public function __construct($n, $iStart, $jStart, $iEnd, $jEnd)
     {
         $this->boardSize = $n;
-        $this->destinationI = $i;
-        $this->destinationJ = $j;
+        $this->destinationI = $iEnd;
+        $this->destinationJ = $jEnd;
+        $this->queue[] = [$iStart, $jStart, 0, []];
     }
-    
-    public function hop($i, $j, $boardVisited = [], $path = [], $currentMove = '')
+
+    public function hop($i, $j, $boardVisited = [], $path = [], $currentMove = '', $jDeviation = 0)
     {
-        //echo implode(' ', $path) . PHP_EOL;
-        if ($i < 0 || $j < 0 || $i >= $this->boardSize || $j >= $this->boardSize) {
-            return;
-        }
+        $dI = [-2, -2, 0, 2, 2, 0];
+        $dJ = [-1, 1, 2, 1, -1, -2];
+        $dDirection = ['UL', 'UR', 'R', 'LR', 'LL', 'L'];
 
-        if (isset($boardVisited[$i][$j])) {
-            return;
-        }
+        while ($this->queue) {
+            $t = array_shift($this->queue);
 
-        if ($currentMove) {
-            $path[] = $currentMove;
-        }
-        $pathLength = count($path);
-        if ($pathLength >= $this->minPathLength) {
-            return;
-        }
+            if ($t[0] == $this->destinationI && $t[1] == $this->destinationJ) {
+                return $t;
+            }
 
-        if ($i === $this->destinationI && $j === $this->destinationJ) {
-            $this->minPathLength = $pathLength;
-            if (!isset($this->paths[$pathLength])) {
-                $this->paths[$pathLength] = $path;
+            for ($ii = 0; $ii < 6; $ii++) {
+                $i = $t[0] + $dI[$ii];
+                $j = $t[1] + $dJ[$ii];
+
+                if ($this->isInside($i, $j) && (!isset($this->boardVisited[$i][$j]))) {
+                    $this->boardVisited[$i][$j] = true;
+                    $path = array_reverse(array_reverse($t[3]));
+                    $path[] = $dDirection[$ii];
+                    $this->queue[] = [$i, $j, $t[2] + 1, $path];
+                }
             }
         }
-
-        $boardVisited[$i][$j] = true;
-
-        $this->hop($i - 2, $j - 1, $boardVisited, $path, 'UL');
-        $this->hop($i - 2, $j + 1, $boardVisited, $path, 'UR');
-        $this->hop($i, $j + 2, $boardVisited, $path, 'R');
-        $this->hop($i + 2, $j + 1, $boardVisited, $path, 'LR');
-        $this->hop($i + 2, $j - 1, $boardVisited, $path, 'LL');
-        $this->hop($i, $j - 2, $boardVisited, $path, 'L');
+        return null;
     }
 
-    public function getMinPath()
-    {
-        return $this->paths[$this->minPathLength];
-    }
-
-    public function isPossible()
-    {
-        return $this->paths ? true : false;
+    private function isInside($x, $y){
+        if (($x >= 0) && ($x < $this->boardSize) && ($y >= 0) && ($y <= $this->boardSize))
+            return true;
+        return false;
     }
 }
 
