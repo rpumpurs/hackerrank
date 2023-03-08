@@ -1,0 +1,4 @@
+Code execution from terminal (with debug)
+```
+export OUTPUT_PATH=php://stdout && cat test1.txt | php -dxdebug.mode=debug -dxdebug.client_host=127.0.0.1 -dxdebug.client_port=9003 -dxdebug.start_with_request=yes code.php
+```
