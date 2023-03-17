@@ -9,35 +9,52 @@
  *  2. STRING loginAttempt
  */
 
-function passwordCracker($passwords, $loginAttempt) {
-    $result = [];
 
-    foreach ($passwords as $password) {
-        if (strpos($loginAttempt, $password) === 0) {
-            $result[] = $password;
-            if (strlen($loginAttempt) > strlen($password)) {
-                $concatPasswords = passwordCracker($passwords, substr($loginAttempt, strlen($password)));
-                if (in_array('WRONG PASSWORD', $concatPasswords)) {
-                    array_pop($result);
-                    continue;
+class PasswordCracker
+{
+    private $failTracker = [];
+
+    function run($passwords, $loginAttempt)
+    {
+        $result = [];
+
+        foreach ($passwords as $password) {
+            if (strpos($loginAttempt, $password) === 0) {
+                $result[] = $password;
+                if (strlen($loginAttempt) > strlen($password)) {
+                    $concatPasswords = $this->run($passwords, substr($loginAttempt, strlen($password)));
+                    if (in_array('FAIL', $concatPasswords)) {
+                        return ['FAIL'];
+                    }
+                    if (in_array('WRONG PASSWORD', $concatPasswords)) {
+                        array_pop($result);
+                        continue;
+                    }
+                    if (!$concatPasswords) {
+                        array_pop($result);
+                        continue;
+                    }
+                    $result = array_merge($result, $concatPasswords);
                 }
-                if (!$concatPasswords) {
-                    array_pop($result);
-                    continue;
+                if (implode('', $result) === $loginAttempt) {
+                    break;
                 }
-                $result = array_merge($result, $concatPasswords);
-            }
-            if (implode('', $result) === $loginAttempt) {
-                break;
             }
         }
-    }
 
-    if (!$result) {
-        return ['WRONG PASSWORD'];
-    }
+        if (!$result) {
+            $l = strlen($loginAttempt);
+            if (!isset($this->failTracker[$l])) $this->failTracker[$l] = 0;
+            $this->failTracker[$l]++;
+            // if fail at the same spot more than 100x, assume it will never pass
+            if ($this->failTracker[$l] > 100) {
+                return ['FAIL'];
+            }
+            return ['WRONG PASSWORD'];
+        }
 
-    return $result;
+        return $result;
+    }
 }
 
 $fptr = fopen(getenv("OUTPUT_PATH"), "w");
@@ -62,7 +79,7 @@ for ($t_itr = 0; $t_itr < $t; $t_itr++) {
     $redundantPasswords = [];
     for ($i = 0; $i <= count($passwords); $i++) {
         for ($j = $i + 1; $j <= count($passwords) - 1; $j++) {
-            $a = passwordCracker([$passwords[$i]], $passwords[$j]);
+            $a = (new PasswordCracker())->run([$passwords[$i]], $passwords[$j]);
             if ($a[0] !== 'WRONG PASSWORD') {
                 $redundantPasswords[$passwords[$j]] = true;
             }
@@ -75,9 +92,13 @@ for ($t_itr = 0; $t_itr < $t; $t_itr++) {
         }
     }
 
-    $result = passwordCracker($passwords, $loginAttempt);
+    $result = (new PasswordCracker())->run($passwords, $loginAttempt);
 
-    fwrite($fptr, implode(' ', $result) . "\n");
+    if (in_array('FAIL', $result)) {
+        fwrite($fptr, 'WRONG PASSWORD' . "\n");
+    } else {
+        fwrite($fptr, implode(' ', $result) . "\n");
+    }
 }
 
 fclose($fptr);
