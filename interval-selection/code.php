@@ -8,52 +8,22 @@
  */
 
 function intervalSelection($intervals) {
-    $intersections = [];
+    usort($intervals, function($a, $b) {
+        return $a[1] > $b[1];
+    });
+    $count = 0;
+    $overlaps = [0,0];
     foreach ($intervals as $interval) {
-        $intersections[$interval[0]] = 1;
-        $intersections[$interval[1]] = 1;
-    }
-    $overlapCountAtIntersectionMax = 0;
-    foreach ($intersections as $intersection => $_) {
-        $overlapCountAtIntersection = 0;
-        foreach ($intervals as $interval) {
-            if (isOverlap($intersection, $intersection, $interval[0], $interval[1])) {
-                $overlapCountAtIntersection++;
-            }
-        }
-        if ($overlapCountAtIntersection > $overlapCountAtIntersectionMax) {
-            $overlapCountAtIntersectionMax = $overlapCountAtIntersection;
+        if ($interval[0] > $overlaps[1]) {
+            $count++;
+            $overlaps[1] = $interval[1];
+        } elseif ($interval[0] > $overlaps[0]) {
+            $count++;
+            $overlaps[0] = $overlaps[1];
+            $overlaps[1] = $interval[1];
         }
     }
-
-    if ($overlapCountAtIntersectionMax <= 2) {
-        return count($intervals);
-    }
-
-    $overlapCounts = [];
-    $maxOverlapCount = 0;
-    $maxOverlapIndex = -1;
-    foreach ($intervals as $i => $intervalOuter) {
-        $overlapCounts[$i] = 0;
-        foreach ($intervals as $j => $intervalInner) {
-            if ($i === $j) continue;
-            if (isOverlap($intervalOuter[0], $intervalOuter[1], $intervalInner[0], $intervalInner[1])) {
-                $overlapCounts[$i]++;
-                if ($overlapCounts[$i] > $maxOverlapCount) {
-                    $maxOverlapCount = $overlapCounts[$i];
-                    $maxOverlapIndex = $i;
-                }
-            }
-        }
-    }
-
-    unset($intervals[$maxOverlapIndex]);
-    return intervalSelection($intervals);
-}
-
-function isOverlap($start_one,$end_one,$start_two,$end_two) {
-
-    return $start_one <= $end_two && $end_one >= $start_two;
+    return $count;
 }
 
 $fptr = fopen(getenv("OUTPUT_PATH"), "w");
@@ -71,9 +41,6 @@ for ($s_itr = 0; $s_itr < $s; $s_itr++) {
         $intervals[] = array_map('intval', preg_split('/ /', $intervals_temp, -1, PREG_SPLIT_NO_EMPTY));
     }
 
-//    if ($s_itr === 32) {
-//        print_r($intervals);
-//    }
     $result = intervalSelection($intervals);
 
     fwrite($fptr, $result . "\n");
